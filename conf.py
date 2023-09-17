@@ -1,3 +1,4 @@
+from collections import namedtuple
 import numpy as np
 import random
 
@@ -16,42 +17,50 @@ def gen_uniformly_events(beta, lam):
     return (tauk, n)
 
 
-class kinks:
+class Kink:
     def __init__(self, beta, J, L):
         self.beta = beta
         self.J = J
         self.L = L
         lam = 1 / 4 * J
-        self.points = []
-        for _ in range(L):
-            tauk, n = gen_uniformly_events(beta, lam)
-            if n > 0:
-                self.points.append(tauk)
-            else:
-                self.points.append([0])
-        self.spins = [
-            [random.choice([-1, 1]) for _ in range(len(self.points[i]))]
-            for i in range(L)
-        ]
 
-    def get_tau(self, points_ix, itau):
-        if itau == -1:
-            return 0
-        elif itau == len(points_ix):
-            return self.beta
-        else:
-            return points_ix[itau]
 
-    def get_wl(self):
-        wl = []
-        for ix in range(self.L):
-            wl += [
-                [
-                    ix,
-                    self.get_tau(self.points[ix], itau),
-                    self.get_tau(self.points[ix], itau + 1),
-                ]
-                for itau in range(-1, len(self.points[ix]))
-                if self.spins[ix][itau] == 1
-            ]
-        return np.array(wl)
+class Wolrdline:
+    def __init__(self, beta, J, L):
+        self.beta = beta
+        self.J = J
+        self.L = L
+        lam = 1 / 4 * J
+        self.kinks = [[] for i in range(L)]
+        self.kink = namedtuple("kink", ["tau", "spin"])
+
+    def add_kinks(self, x, tau, spin):
+        self.kinks[x].append(self.kink(tau, spin))
+
+    def get_up(self, x):
+        tau_spin = namedtuple("tau_spin", ["tau", "spin"])
+        tau_right = []
+        for i in range(len(self.kinks[x])):
+            tau_right.append(tau_spin(self.kinks[x][i].tau, self.kinks[x][i].spin[0]))
+        tau_left = []
+        for i in range(len(self.kinks[x - 1])):
+            tau_left.append(
+                tau_spin(self.kinks[x - 1][i].tau, self.kinks[x - 1][i].spin[-1])
+            )
+        tau = tau_left + tau_right
+        tau.sort()
+        up = []
+        for i in range(len(tau)):
+            if tau[i - 1].spin == 1:
+                up.append([tau[i - 1].tau, tau[i].tau])
+        if up[0][0] > up[0][1]:
+            up.append([0, up[0][1]])
+            up.append([up[0][0], self.beta])
+            up.pop(0)
+        return up
+
+    def get_ups(
+        self,
+    ):
+        ups = [self.get_up(i) for i in range(self.L)]
+        return ups
