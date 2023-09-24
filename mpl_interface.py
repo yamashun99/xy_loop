@@ -33,10 +33,22 @@ def spinplot(self, c):
     self.vlines([bx for bx in range(c.L)], 0, c.beta, colors="k", linestyles="dotted")
 
 
-def kinkplot(self, c):
+def kinkplot(self, c, showgraph=False):
+    graphsymbol = {"h": "=", "d": "X", "x": "None"}
     for kx in range(c.L):
         for ktau in range(len(c.kinks[kx])):
             self.hlines(c.kinks[kx][ktau].ktau, kx, kx + 1, colors="k", linewidths=5)
+            if showgraph:
+                self.text(
+                    kx + 0.5,
+                    c.kinks[kx][ktau].ktau,
+                    graphsymbol[c.kinks[kx][ktau].graph],
+                    ha="center",
+                    va="top",
+                    fontsize=20,
+                )
+    self.set_xlim(0, c.L - 0.5)
+    self.set_ylim(0, c.beta)
 
 
 mpl.axes.Axes.spinplot = spinplot

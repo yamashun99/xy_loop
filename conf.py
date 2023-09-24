@@ -147,14 +147,12 @@ class Conf:
 
     def spin_update(self):
         flip = [[] for i in range(self.L)]
-        print(self.cluster)
-        print(self.spins)
         for kx in range(self.L):
             for itau in range(len(self.spins[kx])):
                 flip[kx].append(random.choice([-1, 1]))
         for bx in range(self.L):
             for ibtau in range(len(self.spins[bx])):
-                if len(self.cluster[bx]) > 1:
+                if len(self.cluster[bx]) > 0:
                     rbx, rbtau = self.root(bx, ibtau)
                 else:
                     rbx, rbtau = bx, ibtau
@@ -215,10 +213,18 @@ class Conf:
                         new_spins[bx].append(self.spins[bx][ibtau])
         self.spins = new_spins
 
-    def conf_update(self):
+    def assign_graph(self):
+        """
+        kinkにgraph"h"か"d"を割り当てる
+        """
         for kx in range(self.L):
             for iktau in range(len(self.kinks[kx])):
                 self.kinks[kx][iktau].graph = random.choice(["h", "d"])
+
+    def insert_kink(self):
+        """
+        新しいkinkを挿入
+        """
         new_kinks = [[] for _ in range(self.L)]
         for kx in range(self.L):
             tauk, n = gen_uniformly_events(self.beta, self.lam)
@@ -227,6 +233,11 @@ class Conf:
         for kx in range(self.L):
             for iktau in range(len(new_kinks[kx])):
                 self.add_kinks(self.kinks, kx, new_kinks[kx][iktau].ktau, "x")
+        return new_kinks
+
+    def conf_update(self):
+        self.assign_graph()
+        new_kinks = self.insert_kink()
         self.make_b()
         self.make_btilde()
         self.insert_spin(new_kinks)
@@ -235,5 +246,3 @@ class Conf:
         self.spin_update()
         self.remove_kinks()
         self.remove_spins()
-        print(self.kinks)
-        print(self.spins)
