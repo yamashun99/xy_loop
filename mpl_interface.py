@@ -41,7 +41,6 @@ def spinplot(self, c):
     segments2 = [((bx, 0), (bx, c.beta)) for bx in range(c.L)]
     lines2 = LineCollection(segments2, colors="k", linestyles="dotted")
     self.add_collection(lines2)
-    self.set_x
 
     return [lines1, lines2]
 
